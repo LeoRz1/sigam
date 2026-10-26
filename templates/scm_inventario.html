@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}Inventario{% endblock %}
+{% block content %}
+{% set puede_ajustar = current_user.rol in ('admin', 'almacenista') %}
+{% set puede_comprar = current_user.rol in ('admin', 'comprador') %}
+<h1 class="h4 mb-3">Inventario y alertas</h1>
+
+{% if alertas %}
+<div class="alert alert-warning">
+  <strong><i class="bi bi-exclamation-triangle"></i> {{ alertas|length }} producto(s) requieren atención</strong> (stock mínimo o punto de reorden).
+  <ul class="mb-0 mt-2">
+  {% for p in alertas %}
+    <li>{{ p.nombre }} ({{ p.presentacion }}): {{ p.stock_actual }} uds —
+      {{ {'agotado': 'agotado', 'minimo': 'en stock mínimo', 'reorden': 'bajo el punto de reorden'}[p.estado_stock] }}
+      {% if puede_comprar %}· <a href="{{ url_for('scm.orden_nueva', producto_id=p.id) }}">Crear orden de compra</a>{% endif %}</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="table-responsive"><table class="table align-middle">
+  <thead><tr><th>Producto</th><th>Presentación</th><th class="text-end">Stock</th><th class="text-end">Mínimo</th><th class="text-end">Reorden</th><th>Estado</th>{% if puede_ajustar %}<th>Ajuste manual</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for p in productos %}
+    <tr><td>{{ p.nombre }}</td><td>{{ p.presentacion }}</td>
+      <td class="text-end fw-semibold">{{ p.stock_actual }}</td><td class="text-end">{{ p.stock_minimo }}</td><td class="text-end">{{ p.punto_reorden }}</td>
+      <td><span class="badge text-bg-{{ {'ok': 'success', 'reorden': 'warning', 'minimo': 'danger', 'agotado': 'dark'}[p.estado_stock] }}">
+        {{ {'ok': 'OK', 'reorden': 'Reordenar', 'minimo': 'Mínimo', 'agotado': 'Agotado'}[p.estado_stock] }}</span></td>
+      {% if puede_ajustar %}
+      <td><form class="d-flex gap-1" method="post" action="{{ url_for('scm.inventario_ajustar', pid=p.id) }}">
+        <input class="form-control form-control-sm" style="width:80px" type="number" name="cantidad" placeholder="+/-" required>
+        <input class="form-control form-control-sm" style="min-width:120px" name="motivo" placeholder="Motivo">
+        <button class="btn btn-sm btn-outline-primary">OK</button></form></td>
+      {% endif %}
+    </tr>
+  {% endfor %}
+  </tbody></table></div>
+{% endblock %}

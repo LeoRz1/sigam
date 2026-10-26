@@ -1,0 +1,12 @@
+:root { --lg-accent: #f5a300; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+main { flex: 1 0 auto; }
+.card { border-radius: .75rem; }
+.table > :not(caption) > * > * { padding-top: .6rem; padding-bottom: .6rem; }
+.navbar-brand .bi { color: var(--lg-accent) !important; }
+
+@media print {
+  .navbar, footer, .no-print, .alert { display: none !important; }
+  body { background: #fff; }
+  #factura { border: none; }
+}

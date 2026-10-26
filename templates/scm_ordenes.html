@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}Órdenes de compra{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Órdenes de compra</h1>
+  {% if current_user.rol in ('admin', 'comprador') %}
+  <a class="btn btn-primary" href="{{ url_for('scm.orden_nueva') }}"><i class="bi bi-plus-lg"></i> Nueva orden</a>{% endif %}
+</div>
+<div class="table-responsive"><table class="table table-hover align-middle">
+  <thead><tr><th>N.º</th><th>Proveedor</th><th>Emisión</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
+  <tbody>
+  {% for o in ordenes %}
+    <tr><td><a href="{{ url_for('scm.orden_detalle', oid=o.id) }}">{{ o.numero }}</a></td><td>{{ o.proveedor.nombre }}</td>
+        <td>{{ o.fecha_emision|fecha }}</td>
+        <td><span class="badge text-bg-{{ {'Pendiente': 'warning', 'Recibido': 'success', 'Cancelado': 'secondary'}[o.estado] }}">{{ o.estado }}</span></td>
+        <td class="text-end">{{ o.total|moneda }}</td></tr>
+  {% else %}<tr><td colspan="5" class="text-body-secondary">No hay órdenes de compra.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

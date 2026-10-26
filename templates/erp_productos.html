@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Catálogo{% endblock %}
+{% block content %}
+{% set puede_editar = current_user.rol in ('admin', 'almacenista') %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h4 mb-0">Catálogo de productos</h1>
+  <div class="d-flex gap-2">
+    <form class="d-flex" method="get"><input class="form-control" name="q" value="{{ q }}" placeholder="Nombre, referencia o viscosidad">
+      <button class="btn btn-outline-secondary ms-1"><i class="bi bi-search"></i></button></form>
+    {% if puede_editar %}<a class="btn btn-primary" href="{{ url_for('erp.producto_nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo</a>{% endif %}
+  </div>
+</div>
+<div class="table-responsive"><table class="table table-hover align-middle">
+  <thead><tr><th>Ref.</th><th>Producto</th><th>Viscosidad</th><th>Norma</th><th>Presentación</th>
+    <th class="text-end">Precio (sin IVA)</th><th class="text-end">Stock</th><th></th></tr></thead>
+  <tbody>
+  {% for p in productos %}
+    <tr class="{{ 'text-body-secondary' if not p.activo }}">
+      <td>{{ p.referencia }}</td><td>{{ p.nombre }}{% if not p.activo %} <span class="badge text-bg-secondary">inactivo</span>{% endif %}</td>
+      <td>{{ p.viscosidad or '—' }}</td><td>{{ p.norma or '—' }}</td><td>{{ p.presentacion }}</td>
+      <td class="text-end">{{ p.precio|moneda }}</td>
+      <td class="text-end"><span class="badge text-bg-{{ {'ok': 'success', 'reorden': 'warning', 'minimo': 'danger', 'agotado': 'dark'}[p.estado_stock] }}">{{ p.stock_actual }}</span></td>
+      <td class="text-end text-nowrap">
+        {% if puede_editar %}
+        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('erp.producto_editar', pid=p.id) }}">Editar</a>
+        <form class="d-inline" method="post" action="{{ url_for('erp.producto_activo', pid=p.id) }}">
+          <button class="btn btn-sm btn-outline-secondary">{{ 'Desactivar' if p.activo else 'Activar' }}</button></form>
+        {% endif %}
+      </td></tr>
+  {% else %}<tr><td colspan="8" class="text-body-secondary">No hay productos.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

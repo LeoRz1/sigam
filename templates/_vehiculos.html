@@ -1,0 +1,31 @@
+{# Parcial: lista de vehículos de un cliente. Requiere c, sugerencias y puede_cambio #}
+<div class="row g-3">
+{% for v in c.vehiculos %}
+  <div class="col-md-6">
+    <div class="card h-100"><div class="card-body">
+      <div class="d-flex justify-content-between">
+        <h3 class="h6 mb-1">{{ v.descripcion }}</h3>
+        <span class="badge text-bg-{{ {'vencido': 'danger', 'proximo': 'warning', 'ok': 'success', 'sin_datos': 'secondary'}[v.estado_alerta] }}">
+          {{ {'vencido': 'Cambio vencido', 'proximo': 'Cambio próximo', 'ok': 'Al día', 'sin_datos': 'Sin registro'}[v.estado_alerta] }}</span>
+      </div>
+      <div class="small text-body-secondary mb-2">Motor {{ v.tipo_motor }}</div>
+      <div><i class="bi bi-droplet"></i> Aceite sugerido: <strong>{{ v.aceite_recomendado or '—' }}</strong></div>
+      <div class="small mt-1">Último cambio: {{ v.fecha_ultimo_cambio|fecha }}{% if v.km_ultimo_cambio %} ({{ '{:,}'.format(v.km_ultimo_cambio).replace(',', '.') }} km){% endif %}
+        · Próximo: <strong>{{ v.proximo_cambio|fecha }}</strong></div>
+      {% if sugerencias.get(v.id) %}
+        <div class="small mt-2">Disponible en catálogo:
+          {% for p in sugerencias[v.id] %}<span class="badge text-bg-light border">{{ p.nombre }} · {{ p.presentacion }}</span> {% endfor %}</div>
+      {% endif %}
+      <div class="mt-3 d-flex gap-2">
+        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('crm.vehiculo_editar', vid=v.id) }}">Editar</a>
+        {% if puede_cambio %}
+        <form method="post" action="{{ url_for('crm.vehiculo_cambio', vid=v.id) }}">
+          <button class="btn btn-sm btn-outline-success">Registrar cambio hoy</button></form>
+        {% endif %}
+      </div>
+    </div></div>
+  </div>
+{% else %}
+  <div class="col-12 text-body-secondary">Aún no hay vehículos registrados.</div>
+{% endfor %}
+</div>

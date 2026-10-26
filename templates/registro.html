@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Crear cuenta{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Crear cuenta de cliente</h1>
+        <form method="post">
+          <div class="mb-3"><label class="form-label">Nombre completo</label>
+            <input class="form-control" name="nombre" required></div>
+          <div class="mb-3"><label class="form-label">Correo</label>
+            <input class="form-control" name="email" type="email" required></div>
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label">Teléfono</label><input class="form-control" name="telefono"></div>
+            <div class="col-6 mb-3"><label class="form-label">Ciudad</label><input class="form-control" name="ciudad"></div>
+          </div>
+          <div class="mb-3"><label class="form-label">Contraseña (mínimo 6 caracteres)</label>
+            <input class="form-control" name="password" type="password" minlength="6" required></div>
+          <button class="btn btn-primary w-100" type="submit">Registrarme</button>
+        </form>
+        <p class="small mt-3 mb-0 text-center"><a href="{{ url_for('auth.login') }}">Ya tengo cuenta</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

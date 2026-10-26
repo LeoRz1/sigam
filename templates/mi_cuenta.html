@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Mi cuenta{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Mis vehículos</h1>
+  <a class="btn btn-primary" href="{{ url_for('crm.vehiculo_nuevo', cid=c.id) }}"><i class="bi bi-plus-lg"></i> Agregar vehículo</a>
+</div>
+{% set puede_cambio = False %}
+{% include "_vehiculos.html" %}
+<h2 class="h5 mt-4">Mis pedidos</h2>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>N.º</th><th>Fecha</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
+  <tbody>{% for v in pedidos %}
+    <tr><td><a href="{{ url_for('erp.factura', vid=v.id) }}">{{ v.numero }}</a></td><td>{{ v.fecha|fecha }}</td><td>{{ v.estado }}</td><td class="text-end">{{ v.total|moneda }}</td></tr>
+  {% else %}<tr><td colspan="4" class="text-body-secondary">Aún no tienes pedidos. <a href="{{ url_for('erp.tienda') }}">Ir a la tienda</a>.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

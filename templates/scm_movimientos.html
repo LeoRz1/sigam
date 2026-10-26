@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}Movimientos{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Movimientos de inventario</h1>
+<div class="table-responsive"><table class="table table-sm align-middle">
+  <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="text-end">Cantidad</th><th>Referencia</th><th>Usuario</th></tr></thead>
+  <tbody>
+  {% for m in movs %}
+    <tr><td>{{ m.fecha|fecha('%d/%m/%Y %H:%M') }}</td><td>{{ m.producto.nombre }} ({{ m.producto.presentacion }})</td>
+      <td><span class="badge text-bg-secondary">{{ m.tipo }}</span></td>
+      <td class="text-end {{ 'text-success' if m.cantidad > 0 else 'text-danger' }}">{{ '%+d'|format(m.cantidad) }}</td>
+      <td>{{ m.referencia or '—' }}</td><td>{{ m.usuario.nombre if m.usuario else '—' }}</td></tr>
+  {% else %}<tr><td colspan="6" class="text-body-secondary">Sin movimientos.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

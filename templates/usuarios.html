@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Usuarios y roles</h1>
+<div class="card mb-4"><div class="card-body">
+  <h2 class="h6">Crear usuario interno</h2>
+  <form method="post" class="row g-2">
+    <div class="col-md-3"><input class="form-control" name="nombre" placeholder="Nombre" required></div>
+    <div class="col-md-3"><input class="form-control" name="email" type="email" placeholder="Correo" required></div>
+    <div class="col-md-2"><input class="form-control" name="password" type="password" placeholder="Contraseña" minlength="6" required></div>
+    <div class="col-md-2"><select class="form-select" name="rol">{% for r in roles %}<option>{{ r }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Crear</button></div>
+  </form>
+</div></div>
+<div class="table-responsive"><table class="table align-middle">
+  <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+  {% for u in usuarios %}
+    <tr>
+      <td>{{ u.nombre }}</td><td>{{ u.email }}</td>
+      <td><select class="form-select form-select-sm" name="rol" form="f{{ u.id }}">
+        {% for r in roles %}<option {{ 'selected' if r == u.rol }}>{{ r }}</option>{% endfor %}</select></td>
+      <td><select class="form-select form-select-sm" name="activo" form="f{{ u.id }}">
+        <option value="1" {{ 'selected' if u.activo }}>Activo</option><option value="0" {{ 'selected' if not u.activo }}>Inactivo</option></select></td>
+      <td><form id="f{{ u.id }}" method="post" action="{{ url_for('auth.usuario_actualizar', uid=u.id) }}">
+        <button class="btn btn-sm btn-outline-primary">Guardar</button></form></td>
+    </tr>
+  {% endfor %}
+  </tbody></table></div>
+{% endblock %}

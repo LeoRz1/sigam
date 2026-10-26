@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Ventas{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h4 mb-0">Ventas y pedidos</h1>
+  <div class="d-flex gap-2">
+    <form method="get"><select class="form-select" name="estado" onchange="this.form.submit()">
+      <option value="">Todos los estados</option>
+      {% for e in ['Pendiente', 'Completada', 'Anulada'] %}<option {{ 'selected' if e == estado }}>{{ e }}</option>{% endfor %}
+    </select></form>
+    <a class="btn btn-primary" href="{{ url_for('erp.venta_nueva') }}"><i class="bi bi-plus-lg"></i> Nueva venta</a>
+  </div>
+</div>
+<div class="table-responsive"><table class="table table-hover align-middle">
+  <thead><tr><th>N.º</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
+  <tbody>
+  {% for v in ventas %}
+    <tr><td><a href="{{ url_for('erp.factura', vid=v.id) }}">{{ v.numero }}</a></td><td>{{ v.fecha|fecha('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ v.cliente.nombre if v.cliente else 'Mostrador' }}</td><td>{{ v.canal }}</td>
+        <td><span class="badge text-bg-{{ {'Completada': 'success', 'Pendiente': 'warning', 'Anulada': 'secondary'}[v.estado] }}">{{ v.estado }}</span></td>
+        <td class="text-end">{{ v.total|moneda }}</td></tr>
+  {% else %}<tr><td colspan="6" class="text-body-secondary">No hay ventas.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

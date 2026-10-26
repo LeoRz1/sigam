@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Factura {{ v.numero }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-9">
+<div class="card" id="factura"><div class="card-body p-4">
+  <div class="d-flex justify-content-between flex-wrap gap-2">
+    <div><h1 class="h4 mb-0"><i class="bi bi-droplet-half text-warning"></i> LubriGest</h1>
+      <div class="small text-body-secondary">Comercializadora de aceites y lubricantes</div></div>
+    <div class="text-end"><div class="h5 mb-0">{{ 'Factura' if v.estado == 'Completada' else 'Pedido' }} {{ v.numero }}</div>
+      <span class="badge text-bg-{{ {'Completada': 'success', 'Pendiente': 'warning', 'Anulada': 'secondary'}[v.estado] }}">{{ v.estado }}</span>
+      <div class="small">{{ v.fecha|fecha('%d/%m/%Y %H:%M') }}</div></div>
+  </div>
+  <hr>
+  <div class="row small mb-3">
+    <div class="col-sm-6"><strong>Cliente:</strong> {{ v.cliente.nombre if v.cliente else 'Consumidor final' }}</div>
+    <div class="col-sm-3"><strong>Canal:</strong> {{ v.canal }}</div>
+    <div class="col-sm-3"><strong>Atendió:</strong> {{ v.vendedor.nombre if v.vendedor else '—' }}</div>
+  </div>
+  <div class="table-responsive"><table class="table table-sm">
+    <thead><tr><th>Producto</th><th class="text-end">Cant.</th><th class="text-end">Precio unit.</th><th class="text-end">Subtotal</th></tr></thead>
+    <tbody>{% for d in v.detalles %}
+      <tr><td>{{ d.producto.nombre }} <small class="text-body-secondary">({{ d.producto.presentacion }})</small></td>
+          <td class="text-end">{{ d.cantidad }}</td><td class="text-end">{{ d.precio_unitario|moneda }}</td>
+          <td class="text-end">{{ d.subtotal|moneda }}</td></tr>{% endfor %}</tbody>
+    <tfoot>
+      <tr><td colspan="3" class="text-end">Subtotal</td><td class="text-end">{{ v.subtotal|moneda }}</td></tr>
+      <tr><td colspan="3" class="text-end">IVA ({{ (config.IVA * 100)|int }}%)</td><td class="text-end">{{ v.iva|moneda }}</td></tr>
+      <tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end">{{ v.total|moneda }}</td></tr>
+    </tfoot></table></div>
+</div></div>
+<div class="d-flex flex-wrap gap-2 mt-3 no-print">
+  <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
+  {% if current_user.rol in ('admin', 'vendedor') %}
+    {% if v.estado == 'Pendiente' %}
+    <form method="post" action="{{ url_for('erp.venta_confirmar', vid=v.id) }}"><button class="btn btn-success">Confirmar y descontar inventario</button></form>
+    {% endif %}
+    {% if v.estado != 'Anulada' %}
+    <form method="post" action="{{ url_for('erp.venta_anular', vid=v.id) }}" data-confirm="¿Anular esta venta?"><button class="btn btn-outline-danger">Anular</button></form>
+    {% endif %}
+  {% endif %}
+  <a class="btn btn-link" href="{{ url_for('main.index') }}">Volver</a>
+</div>
+</div></div>
+{% endblock %}

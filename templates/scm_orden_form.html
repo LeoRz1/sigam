@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}Nueva orden de compra{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Nueva orden de compra</h1>
+<form method="post">
+  <div class="row g-3 mb-3"><div class="col-md-6"><label class="form-label">Proveedor</label>
+    <select class="form-select" name="proveedor_id" required><option value="">Selecciona…</option>
+      {% for p in proveedores %}<option value="{{ p.id }}">{{ p.nombre }}</option>{% endfor %}</select></div></div>
+  <div class="table-responsive"><table class="table align-middle" id="tabla-orden">
+    <thead><tr><th style="min-width:260px">Producto</th><th style="width:120px">Cantidad</th><th style="width:160px">Costo unitario</th><th></th></tr></thead>
+    <tbody></tbody></table></div>
+  <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="agregar-fila-orden"><i class="bi bi-plus-lg"></i> Agregar producto</button>
+  <div><button class="btn btn-primary" type="submit">Crear orden</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('scm.ordenes') }}">Cancelar</a></div>
+</form>
+<template id="fila-orden-tpl"><tr>
+  <td><select class="form-select" name="producto_id" required><option value="">Selecciona…</option>
+    {% for p in productos %}<option value="{{ p.id }}" data-sug="{{ p.punto_reorden * 2 }}">{{ p.nombre }} · {{ p.presentacion }} (stock {{ p.stock_actual }})</option>{% endfor %}</select></td>
+  <td><input class="form-control" type="number" name="cantidad" min="1" value="10" required></td>
+  <td><input class="form-control" type="number" name="costo" min="0" step="any" required></td>
+  <td><button type="button" class="btn btn-sm btn-outline-danger quitar-fila"><i class="bi bi-x-lg"></i></button></td>
+</tr></template>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.PRODUCTO_SUGERIDO = {{ sugerido|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/orden.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}{{ c.nombre }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-1">{{ c.nombre }} <span class="badge text-bg-secondary fs-6">{{ c.tipo }}</span></h1>
+    <div class="text-body-secondary small">{{ c.telefono or 'Sin teléfono' }} · {{ c.email or 'Sin correo' }} · {{ c.ciudad or 'Sin ciudad' }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('crm.cliente_editar', cid=c.id) }}">Editar</a>
+    <a class="btn btn-primary" href="{{ url_for('crm.vehiculo_nuevo', cid=c.id) }}"><i class="bi bi-plus-lg"></i> Vehículo</a>
+  </div>
+</div>
+<h2 class="h5">Vehículos</h2>
+{% set puede_cambio = True %}
+{% include "_vehiculos.html" %}
+
+<h2 class="h5 mt-4">Últimas compras</h2>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>N.º</th><th>Fecha</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
+  <tbody>{% for v in ventas %}
+    <tr><td><a href="{{ url_for('erp.factura', vid=v.id) }}">{{ v.numero }}</a></td><td>{{ v.fecha|fecha }}</td><td>{{ v.estado }}</td><td class="text-end">{{ v.total|moneda }}</td></tr>
+  {% else %}<tr><td colspan="4" class="text-body-secondary">Sin compras registradas.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

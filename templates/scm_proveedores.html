@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Proveedores{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Proveedores</h1>
+  <a class="btn btn-primary" href="{{ url_for('scm.proveedor_nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo</a>
+</div>
+<div class="table-responsive"><table class="table table-hover align-middle">
+  <thead><tr><th>Nombre</th><th>NIT</th><th>Contacto</th><th>Teléfono</th><th>Condiciones</th><th></th></tr></thead>
+  <tbody>
+  {% for p in proveedores %}
+    <tr><td>{{ p.nombre }}</td><td>{{ p.nit or '—' }}</td><td>{{ p.contacto or '—' }}</td><td>{{ p.telefono or '—' }}</td>
+        <td>{{ p.condiciones or '—' }}</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('scm.proveedor_editar', pid=p.id) }}">Editar</a></td></tr>
+  {% else %}<tr><td colspan="6" class="text-body-secondary">Aún no hay proveedores.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

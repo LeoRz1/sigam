@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}Clientes{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h4 mb-0">Clientes y vehículos</h1>
+  <div class="d-flex gap-2">
+    <form class="d-flex" method="get"><input class="form-control" name="q" value="{{ q }}" placeholder="Buscar nombre o teléfono">
+      <button class="btn btn-outline-secondary ms-1"><i class="bi bi-search"></i></button></form>
+    <a class="btn btn-primary" href="{{ url_for('crm.cliente_nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo</a>
+  </div>
+</div>
+<div class="table-responsive"><table class="table table-hover align-middle">
+  <thead><tr><th>Nombre</th><th>Tipo</th><th>Teléfono</th><th>Ciudad</th><th>Vehículos</th><th></th></tr></thead>
+  <tbody>
+  {% for c in clientes %}
+    <tr><td><a href="{{ url_for('crm.cliente_detalle', cid=c.id) }}">{{ c.nombre }}</a></td>
+        <td><span class="badge text-bg-secondary">{{ c.tipo }}</span></td><td>{{ c.telefono or '—' }}</td>
+        <td>{{ c.ciudad or '—' }}</td><td>{{ c.vehiculos|length }}</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('crm.cliente_editar', cid=c.id) }}">Editar</a></td></tr>
+  {% else %}<tr><td colspan="6" class="text-body-secondary">No hay clientes que coincidan.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

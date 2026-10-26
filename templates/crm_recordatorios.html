@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Recordatorios{% endblock %}
+{% block content %}
+<h1 class="h4 mb-1">Recordatorios de cambio de aceite</h1>
+<p class="text-body-secondary">Vehículos con cambio vencido o que vence en los próximos {{ config.DIAS_ALERTA_CAMBIO }} días.</p>
+<div class="table-responsive"><table class="table align-middle">
+  <thead><tr><th>Cliente</th><th>Teléfono</th><th>Vehículo</th><th>Aceite sugerido</th><th>Próximo cambio</th><th></th></tr></thead>
+  <tbody>
+  {% for v in vehiculos %}
+    <tr><td><a href="{{ url_for('crm.cliente_detalle', cid=v.cliente.id) }}">{{ v.cliente.nombre }}</a></td>
+        <td>{{ v.cliente.telefono or '—' }}</td><td>{{ v.descripcion }}</td><td>{{ v.aceite_recomendado }}</td>
+        <td><span class="badge text-bg-{{ 'danger' if v.estado_alerta == 'vencido' else 'warning' }}">{{ v.proximo_cambio|fecha }}</span></td>
+        <td class="text-end"><form method="post" action="{{ url_for('crm.vehiculo_cambio', vid=v.id) }}">
+          <button class="btn btn-sm btn-outline-success">Registrar cambio hoy</button></form></td></tr>
+  {% else %}<tr><td colspan="6" class="text-body-secondary">No hay recordatorios pendientes.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

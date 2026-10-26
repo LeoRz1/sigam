@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}{{ o.numero }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+  <div><h1 class="h4 mb-1">Orden {{ o.numero }}
+      <span class="badge text-bg-{{ {'Pendiente': 'warning', 'Recibido': 'success', 'Cancelado': 'secondary'}[o.estado] }} fs-6">{{ o.estado }}</span></h1>
+    <div class="text-body-secondary small">Proveedor: {{ o.proveedor.nombre }} · Emitida {{ o.fecha_emision|fecha }}
+      {% if o.fecha_recepcion %}· Recibida {{ o.fecha_recepcion|fecha }}{% endif %}</div>
+    {% if o.proveedor.condiciones %}<div class="small">Condiciones: {{ o.proveedor.condiciones }}</div>{% endif %}</div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('scm.ordenes') }}">Volver</a>
+</div>
+<div class="table-responsive"><table class="table">
+  <thead><tr><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Costo unit.</th><th class="text-end">Subtotal</th></tr></thead>
+  <tbody>{% for d in o.detalles %}
+    <tr><td>{{ d.producto.nombre }} ({{ d.producto.presentacion }})</td><td class="text-end">{{ d.cantidad }}</td>
+        <td class="text-end">{{ d.costo_unitario|moneda }}</td><td class="text-end">{{ d.subtotal|moneda }}</td></tr>{% endfor %}</tbody>
+  <tfoot><tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end">{{ o.total|moneda }}</td></tr></tfoot></table></div>
+{% if o.estado == 'Pendiente' %}
+<div class="d-flex gap-2">
+  <form method="post" action="{{ url_for('scm.orden_recibir', oid=o.id) }}"><button class="btn btn-success"><i class="bi bi-box-seam"></i> Registrar recepción</button></form>
+  {% if current_user.rol in ('admin', 'comprador') %}
+  <form method="post" action="{{ url_for('scm.orden_cancelar', oid=o.id) }}" data-confirm="¿Cancelar esta orden?"><button class="btn btn-outline-danger">Cancelar orden</button></form>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}Carrito{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Carrito de compras</h1>
+{% if items %}
+<div class="table-responsive"><table class="table align-middle">
+  <thead><tr><th>Producto</th><th class="text-end">Precio</th><th class="text-end">Cant.</th><th class="text-end">Subtotal</th><th></th></tr></thead>
+  <tbody>
+  {% for p, cant in items %}
+    <tr><td>{{ p.nombre }} <small class="text-body-secondary">({{ p.presentacion }})</small></td>
+        <td class="text-end">{{ p.precio|moneda }}</td><td class="text-end">{{ cant }}</td>
+        <td class="text-end">{{ (p.precio * cant)|moneda }}</td>
+        <td class="text-end"><form method="post" action="{{ url_for('erp.carrito_quitar', pid=p.id) }}">
+          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>
+  {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" class="text-end">Subtotal</td><td class="text-end">{{ subtotal|moneda }}</td><td></td></tr>
+    <tr><td colspan="3" class="text-end">IVA ({{ (config.IVA * 100)|int }}%)</td><td class="text-end">{{ iva|moneda }}</td><td></td></tr>
+    <tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end">{{ total|moneda }}</td><td></td></tr>
+  </tfoot></table></div>
+<div class="d-flex gap-2">
+  <a class="btn btn-outline-secondary" href="{{ url_for('erp.tienda') }}">Seguir comprando</a>
+  {% if current_user.rol == 'cliente' %}
+  <form method="post" action="{{ url_for('erp.carrito_confirmar') }}"><button class="btn btn-primary">Enviar pedido</button></form>
+  {% else %}<span class="text-body-secondary align-self-center small">Las ventas de mostrador se registran en «Nueva venta».</span>{% endif %}
+</div>
+{% else %}
+<p class="text-body-secondary">Tu carrito está vacío. <a href="{{ url_for('erp.tienda') }}">Ver productos</a>.</p>
+{% endif %}
+{% endblock %}
