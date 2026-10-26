@@ -4,9 +4,12 @@ main { flex: 1 0 auto; }
 .card { border-radius: .75rem; }
 .table > :not(caption) > * > * { padding-top: .6rem; padding-bottom: .6rem; }
 .navbar-brand .bi { color: var(--lg-accent) !important; }
-
+.color
+  {
+    color: #f3f3f4 !important; /* Color de texto gris */
+  }
 @media print {
   .navbar, footer, .no-print, .alert { display: none !important; }
-  body { background: #fff; }
+  body { background: #767e85; }
   #factura { border: none; }
 }
