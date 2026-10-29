@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}Clientes{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-movil.css') }}">
+
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
   <h1 class="h4 mb-0">Clientes y vehículos</h1>
   <div class="d-flex gap-2">
@@ -8,15 +10,50 @@
       <button class="btn btn-outline-secondary ms-1"><i class="bi bi-search"></i></button></form>
     <a class="btn btn-primary" href="{{ url_for('crm.cliente_nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo</a>
   </div>
+</div><div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Teléfono</th>
+                <th>Ciudad</th>
+                <th>Vehículos</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for c in clientes %}
+            <tr style="background-color: #1A202C; color: #fff;">
+                <td><a href="{{ url_for('crm.cliente_detalle', cid=c.id) }}" class="text-decoration-none text-info fw-semibold">{{ c.nombre }}</a></td>
+                <td><span class="badge text-bg-secondary">{{ c.tipo }}</span></td>
+                <td class="text-light">{{ c.telefono or '—' }}</td>
+                <td class="text-light">{{ c.ciudad or '—' }}</td>
+                <td class="text-light">{{ c.vehiculos|length }}</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-light" href="{{ url_for('crm.cliente_editar', cid=c.id) }}">Editar</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-body-secondary text-center">No hay clientes que coincidan.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-<div class="table-responsive"><table class="table table-hover align-middle">
-  <thead><tr><th>Nombre</th><th>Tipo</th><th>Teléfono</th><th>Ciudad</th><th>Vehículos</th><th></th></tr></thead>
-  <tbody>
-  {% for c in clientes %}
-    <tr><td><a href="{{ url_for('crm.cliente_detalle', cid=c.id) }}">{{ c.nombre }}</a></td>
-        <td><span class="badge text-bg-secondary">{{ c.tipo }}</span></td><td>{{ c.telefono or '—' }}</td>
-        <td>{{ c.ciudad or '—' }}</td><td>{{ c.vehiculos|length }}</td>
-        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('crm.cliente_editar', cid=c.id) }}">Editar</a></td></tr>
-  {% else %}<tr><td colspan="6" class="text-body-secondary">No hay clientes que coincidan.</td></tr>{% endfor %}
-  </tbody></table></div>
+
+ <div class="col-12 mt-5">
+            <a href="{{ url_for('crm.recordatorios') }}"
+                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none "
+                style="background-color: #1A202C;">
+                <div class="card-body d-flex align-items-center py-3">
+                    
+                    <div class="w-100 text-start text-md-center">
+                        <h3 class="fw-bold me-4 mb-0 " style="min-width: 90px;">Recordatorio de cambios de aceite</h3>
+                        <div class="fs-6 fw-semibold text-danger mt-1">Recordatorios: {{ recordatorios|length }} ítems</div>
+                    </div>
+                </div>
+            </a>
+        </div>
 {% endblock %}

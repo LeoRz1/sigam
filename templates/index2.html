@@ -3,55 +3,111 @@
 {% block content %}
 <h1 class="h4 mb-3">Dashboard general</h1>
 <div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-    <div class="small text-body-secondary">Ventas del mes (con IVA)</div><div class="fs-4 fw-semibold">{{ ventas_mes|moneda }}</div></div></div></div>
-  <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-    <div class="small text-body-secondary">Clientes (CRM)</div><div class="fs-4 fw-semibold">{{ clientes }}</div></div></div></div>
-  <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-    <div class="small text-body-secondary">Pedidos en línea pendientes</div><div class="fs-4 fw-semibold">{{ pedidos_pendientes }}</div></div></div></div>
-  <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-    <div class="small text-body-secondary">Órdenes de compra pendientes</div><div class="fs-4 fw-semibold">{{ ordenes_pendientes }}</div></div></div></div>
+  <div class="col-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-body-secondary">Ventas del mes (con IVA)</div>
+        <div class="fs-4 fw-semibold">{{ ventas_mes|moneda }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-body-secondary">Clientes (CRM)</div>
+        <div class="fs-4 fw-semibold">{{ clientes }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-body-secondary">Pedidos en línea pendientes</div>
+        <div class="fs-4 fw-semibold">{{ pedidos_pendientes }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-body-secondary">Órdenes de compra pendientes</div>
+        <div class="fs-4 fw-semibold">{{ ordenes_pendientes }}</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="row g-4">
   <div class="col-lg-6">
-    <div class="card h-100"><div class="card-header d-flex justify-content-between">
-      <span><i class="bi bi-exclamation-triangle text-warning"></i> Stock bajo / punto de reorden</span>
-      <a href="{{ url_for('scm.inventario') }}" class="small">Ver inventario</a></div>
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-exclamation-triangle text-warning"></i> Stock bajo / punto de reorden</span>
+        <a href="{{ url_for('scm.inventario') }}" class="small">Ver inventario</a>
+      </div>
       <ul class="list-group list-group-flush">
-      {% for p in bajos %}
+        {% for p in bajos %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span>{{ p.nombre }} <small class="text-body-secondary">({{ p.presentacion }})</small></span>
-          <span class="badge {{ 'text-bg-danger' if p.estado_stock in ('agotado', 'minimo') else 'text-bg-warning' }}">{{ p.stock_actual }} uds</span>
+          <span
+            class="badge {{ 'text-bg-danger' if p.estado_stock in ('agotado', 'minimo') else 'text-bg-warning' }}">{{
+            p.stock_actual }} uds</span>
         </li>
-      {% else %}<li class="list-group-item text-body-secondary">Todo el inventario está sobre el punto de reorden.</li>{% endfor %}
-      </ul></div>
+        {% else %}<li class="list-group-item text-body-secondary">Todo el inventario está sobre el punto de reorden.
+        </li>{% endfor %}
+      </ul>
+    </div>
   </div>
   <div class="col-lg-6">
-    <div class="card h-100"><div class="card-header d-flex justify-content-between">
-      <span><i class="bi bi-bell text-primary"></i> Próximos cambios de aceite</span>
-      <a href="{{ url_for('crm.recordatorios') }}" class="small">Ver todos</a></div>
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-bell text-primary"></i> Próximos cambios de aceite</span>
+        <a href="{{ url_for('crm.recordatorios') }}" class="small">Ver todos</a>
+      </div>
       <ul class="list-group list-group-flush">
-      {% for v in alertas %}
+        {% for v in alertas %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span>{{ v.cliente.nombre }} · <small>{{ v.descripcion }}</small></span>
-          <span class="badge {{ 'text-bg-danger' if v.estado_alerta == 'vencido' else 'text-bg-warning' }}">{{ v.proximo_cambio|fecha }}</span>
+          <span class="badge {{ 'text-bg-danger' if v.estado_alerta == 'vencido' else 'text-bg-warning' }}">{{
+            v.proximo_cambio|fecha }}</span>
         </li>
-      {% else %}<li class="list-group-item text-body-secondary">No hay cambios próximos ni vencidos.</li>{% endfor %}
-      </ul></div>
+        {% else %}<li class="list-group-item text-body-secondary">No hay cambios próximos ni vencidos.</li>{% endfor %}
+      </ul>
+    </div>
   </div>
   <div class="col-12">
-    <div class="card"><div class="card-header">Últimas ventas</div>
-      <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
-        <thead><tr><th>N.º</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
-        <tbody>
-        {% for v in ultimas_ventas %}
-          <tr><td><a href="{{ url_for('erp.factura', vid=v.id) }}">{{ v.numero }}</a></td><td>{{ v.fecha|fecha('%d/%m/%Y %H:%M') }}</td>
-              <td>{{ v.cliente.nombre if v.cliente else 'Mostrador' }}</td><td>{{ v.canal }}</td>
-              <td><span class="badge text-bg-{{ {'Completada': 'success', 'Pendiente': 'warning', 'Anulada': 'secondary'}[v.estado] }}">{{ v.estado }}</span></td>
-              <td class="text-end">{{ v.total|moneda }}</td></tr>
-        {% else %}<tr><td colspan="6" class="text-body-secondary">Aún no hay ventas.</td></tr>{% endfor %}
-        </tbody></table></div></div>
+    <div class="card">
+      <div class="card-header">Últimas ventas</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>N.º</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Canal</th>
+              <th>Estado</th>
+              <th class="text-end">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in ultimas_ventas %}
+            <tr>
+              <td><a href="{{ url_for('erp.factura', vid=v.id) }}">{{ v.numero }}</a></td>
+              <td>{{ v.fecha|fecha('%d/%m/%Y %H:%M') }}</td>
+              <td>{{ v.cliente.nombre if v.cliente else 'Mostrador' }}</td>
+              <td>{{ v.canal }}</td>
+              <td><span
+                  class="badge text-bg-{{ {'Completada': 'success', 'Pendiente': 'warning', 'Anulada': 'secondary'}[v.estado] }}">{{
+                  v.estado }}</span></td>
+              <td class="text-end">{{ v.total|moneda }}</td>
+            </tr>
+            {% else %}<tr>
+              <td colspan="6" class="text-body-secondary">Aún no hay ventas.</td>
+            </tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
