@@ -1,3 +1,12 @@
+[data-bs-theme="light"] {
+    --bs-body-color: #1c254e; /* Color de texto claro */
+    --bs-body-bg: #767e85; /* Color de fondo oscuro */
+}
+[data-bs-theme="dark"] {
+    --bs-body-color: #f8f9fa; /* Color de texto oscuro */
+    --bs-body-bg: #1c254e; /* Color de fondo claro */
+    
+}
 :root { --lg-accent: #f5a300; }
 body { min-height: 100vh; display: flex; flex-direction: column; }
 main { flex: 1 0 auto; }
