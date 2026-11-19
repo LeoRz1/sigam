@@ -12,7 +12,7 @@ bp = Blueprint("scm", __name__)
 
 # ---------------------------------------- Inventario y alertas (RF-25, 27)
 @bp.route("/inventario")
-@roles_required("almacenista", "comprador")
+@roles_required("almacenista", "vendedor")
 def inventario():
     productos = Producto.query.filter_by(activo=True).order_by(Producto.nombre).all()
     alertas = [p for p in productos if p.estado_stock != "ok"]
