@@ -1,17 +1,57 @@
 {% extends "layout.html" %}
 {% block title %}Recordatorios{% endblock %}
 {% block content %}
-<h1 class="h4 mb-1">Recordatorios de cambio de aceite</h1>
-<p class="text-body-secondary">Vehículos con cambio vencido o que vence en los próximos {{ config.DIAS_ALERTA_CAMBIO }} días.</p>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-1">Recordatorios de cambio de aceite</h1>
+    <p class="text-body-secondary mb-0">Vehículos con cambio vencido o que vence en los próximos {{ config.DIAS_ALERTA_CAMBIO }} días.</p>
+  </div>
+
+  {% if correos_recordatorios %}
+  <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ correos_recordatorios | join(',') | urlencode }}&su={{ 'Recordatorio de cambio de aceite' | urlencode }}"
+     target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
+    <i class="bi bi-envelope"></i> Enviar correos ({{ correos_recordatorios|length }})
+  </a>
+  {% else %}
+  <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="No hay correos registrados">
+    <i class="bi bi-envelope"></i> Enviar correos (0)
+  </button>
+  {% endif %}
+</div>
+
 <div class="table-responsive"><table class="table align-middle">
-  <thead><tr><th>Cliente</th><th>Teléfono</th><th>Vehículo</th><th>Aceite sugerido</th><th>Próximo cambio</th><th></th></tr></thead>
+  <thead><tr><th>Cliente</th><th>Teléfono</th><th>Correo</th><th>Vehículo</th><th>Aceite sugerido</th><th>Próximo cambio</th><th class="text-end">Acciones</th></tr></thead>
   <tbody>
   {% for v in vehiculos %}
-    <tr><td><a href="{{ url_for('crm.cliente_detalle', cid=v.cliente.id) }}">{{ v.cliente.nombre }}</a></td>
-        <td>{{ v.cliente.telefono or '—' }}</td><td>{{ v.descripcion }}</td><td>{{ v.aceite_recomendado }}</td>
-        <td><span class="badge text-bg-{{ 'danger' if v.estado_alerta == 'vencido' else 'warning' }}">{{ v.proximo_cambio|fecha }}</span></td>
-        <td class="text-end"><form method="post" action="{{ url_for('crm.vehiculo_cambio', vid=v.id) }}">
-          <button class="btn btn-sm btn-outline-success">Registrar cambio hoy</button></form></td></tr>
-  {% else %}<tr><td colspan="6" class="text-body-secondary">No hay recordatorios pendientes.</td></tr>{% endfor %}
+    {% set tel_limpio = (v.cliente.telefono or '') | replace('+', '') | replace(' ', '') | replace('-', '') | replace('(', '') | replace(')', '') %}
+    {% set mensaje_wa = 'Hola ' ~ v.cliente.nombre ~ ', le recordamos que su vehículo ' ~ v.descripcion ~ ' (' ~ (v.aceite_recomendado or 'aceite recomendado') ~ ') tiene próximo cambio de aceite el ' ~ (v.proximo_cambio|fecha) ~ '.' %}
+    <tr>
+      <td><a href="{{ url_for('crm.cliente_detalle', cid=v.cliente.id) }}">{{ v.cliente.nombre }}</a></td>
+      <td>{{ v.cliente.telefono or '—' }}</td>
+      <td>{{ v.cliente.email or '—' }}</td>
+      <td>{{ v.descripcion }}</td>
+      <td>{{ v.aceite_recomendado }}</td>
+      <td><span class="badge text-bg-{{ 'danger' if v.estado_alerta == 'vencido' else 'warning' }}">{{ v.proximo_cambio|fecha }}</span></td>
+      <td class="text-end">
+        <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+          {% if tel_limpio %}
+          <a href="https://wa.me/{{ tel_limpio }}?text={{ mensaje_wa | urlencode }}"
+             target="_blank" rel="noopener noreferrer"
+             class="btn btn-sm btn-outline-success"
+             style="min-width: 155px;">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+          </a>
+          {% endif %}
+          <form method="post" action="{{ url_for('crm.vehiculo_cambio', vid=v.id) }}" class="d-inline">
+            <button type="submit"
+                    class="btn btn-sm btn-outline-success"
+                    style="min-width: 155px;">
+              Registrar cambio hoy
+            </button>
+          </form>
+        </div>
+      </td>
+    </tr>
+  {% else %}<tr><td colspan="7" class="text-body-secondary">No hay recordatorios pendientes.</td></tr>{% endfor %}
   </tbody></table></div>
 {% endblock %}

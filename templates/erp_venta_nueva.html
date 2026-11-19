@@ -1,38 +1,222 @@
 {% extends "layout.html" %}
 {% block title %}Nueva venta{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">Nueva venta en mostrador</h1>
-<form method="post" id="form-venta" data-iva="{{ config.IVA }}">
-  <div class="row g-3 mb-3">
-    <div class="col-md-6"><label class="form-label">Cliente (opcional)</label>
-      <select class="form-select" name="cliente_id"><option value="">Consumidor final</option>
-        {% for c in clientes %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}</select></div>
-  </div>
-  <div class="table-responsive"><table class="table align-middle" id="tabla-items">
-    <thead><tr><th style="min-width:260px">Producto</th><th style="width:120px">Cantidad</th>
-      <th class="text-end">Precio</th><th class="text-end">Subtotal</th><th></th></tr></thead>
-    <tbody></tbody></table></div>
-  <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="agregar-fila"><i class="bi bi-plus-lg"></i> Agregar producto</button>
-  <div class="row justify-content-end"><div class="col-md-5 col-lg-4">
-    <table class="table table-sm">
-      <tr><td>Subtotal</td><td class="text-end" id="t-subtotal">$0</td></tr>
-      <tr><td>IVA ({{ (config.IVA * 100)|int }}%)</td><td class="text-end" id="t-iva">$0</td></tr>
-      <tr class="fw-bold"><td>Total</td><td class="text-end" id="t-total">$0</td></tr></table>
-  </div></div>
-  <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Registrar venta</button>
-  <a class="btn btn-outline-secondary" href="{{ url_for('erp.ventas') }}">Cancelar</a>
-</form>
+<style>
+  .venta-pos {
+    --pos-surface: #ffffff;
+    --pos-subtle: #f8fafc;
+    --pos-input-bg: #f1f5f9;
+    --pos-ink: #0f172a;
+    --pos-muted: #64748b;
+    --pos-border: rgba(15, 23, 42, 0.09);
+    --pos-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    color: var(--pos-ink);
+  }
 
-<template id="fila-tpl">
-  <tr>
-    <td><select class="form-select item-producto" name="producto_id" required>
-      <option value="">Selecciona…</option>
-      {% for p in productos %}<option value="{{ p.id }}" data-precio="{{ p.precio }}" data-stock="{{ p.stock_actual }}">{{ p.nombre }} · {{ p.presentacion }} (stock {{ p.stock_actual }})</option>{% endfor %}
-    </select></td>
-    <td><input class="form-control item-cant" type="number" name="cantidad" value="1" min="1" required></td>
-    <td class="text-end item-precio">$0</td><td class="text-end item-subtotal">$0</td>
-    <td><button type="button" class="btn btn-sm btn-outline-danger quitar-fila"><i class="bi bi-x-lg"></i></button></td>
-  </tr>
-</template>
+  [data-bs-theme="dark"] .venta-pos {
+    --pos-surface: #1e293b;
+    --pos-subtle: #0f172a;
+    --pos-input-bg: #0f172a;
+    --pos-ink: #f8fafc;
+    --pos-muted: #94a3b8;
+    --pos-border: rgba(248, 250, 252, 0.1);
+    --pos-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .venta-pos {
+      --pos-surface: #1e293b;
+      --pos-subtle: #0f172a;
+      --pos-input-bg: #0f172a;
+      --pos-ink: #f8fafc;
+      --pos-muted: #94a3b8;
+      --pos-border: rgba(248, 250, 252, 0.1);
+      --pos-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  .pos-card {
+    background-color: var(--pos-surface);
+    border: 1px solid var(--pos-border);
+    border-radius: 1rem;
+    box-shadow: var(--pos-shadow);
+  }
+
+  .pos-summary-box {
+    background-color: var(--pos-subtle);
+    border: 1px solid var(--pos-border);
+    border-radius: 0.875rem;
+  }
+
+  .venta-pos .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--pos-muted);
+  }
+
+  .venta-pos .form-control,
+  .venta-pos .form-select {
+    background-color: var(--pos-input-bg);
+    color: var(--pos-ink);
+    border: 1px solid var(--pos-border);
+    border-radius: 0.6rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .venta-pos .form-control:focus,
+  .venta-pos .form-select:focus {
+    background-color: var(--pos-surface);
+    color: var(--pos-ink);
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  }
+
+  .venta-pos .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--pos-ink);
+    --bs-table-border-color: var(--pos-border);
+    margin-bottom: 0;
+  }
+
+  .venta-pos .table thead th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--pos-muted);
+    background-color: var(--pos-subtle);
+    border-bottom: 1px solid var(--pos-border);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .venta-pos .table tbody td {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .btn-pos-client {
+    background-color: var(--pos-input-bg);
+    color: var(--pos-ink);
+    border: 1px solid var(--pos-border);
+    border-radius: 0.6rem;
+    font-weight: 500;
+  }
+
+  .btn-pos-client:hover {
+    background-color: var(--pos-subtle);
+    color: #0d6efd;
+    border-color: rgba(13, 110, 253, 0.35);
+  }
+</style>
+
+<div class="venta-pos">
+  <!-- Cabecera -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+      <h1 class="h4 fw-bold mb-0">Nueva venta en mostrador</h1>
+      <p class="small mb-0" style="color: var(--pos-muted);">Selecciona el cliente y agrega los productos a facturar</p>
+    </div>
+    <a class="btn btn-sm btn-pos-client px-3 py-2" href="{{ url_for('erp.ventas') }}">
+      <i class="bi bi-arrow-left me-1"></i> Volver a ventas
+    </a>
+  </div>
+
+  <form method="post" id="form-venta" data-iva="{{ config.IVA }}">
+    <!-- Bloque 1: Selección de Cliente -->
+    <div class="pos-card p-3 p-md-4 mb-4">
+      <div class="row align-items-end g-3">
+        <div class="col-md-8 col-lg-7">
+          <label class="form-label mb-2">Cliente (opcional)</label>
+          <div class="d-flex flex-column flex-sm-row gap-2">
+            <select class="form-select" name="cliente_id">
+              <option value="">Consumidor final</option>
+              {% for c in clientes %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+            </select>
+            <a href="{{ url_for('crm.cliente_nuevo') }}" class="btn btn-pos-client text-nowrap px-3">
+              <i class="bi bi-person-plus me-1"></i> Registrar cliente
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloque 2: Tabla de Productos -->
+    <div class="pos-card overflow-hidden mb-4">
+      <div class="p-3 p-md-4 pb-2 d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-bag-check me-2 text-primary"></i>Detalle de productos</span>
+        <button type="button" class="btn btn-primary btn-sm rounded-3 px-3" id="agregar-fila">
+          <i class="bi bi-plus-lg me-1"></i> Agregar producto
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle" id="tabla-items">
+          <thead>
+            <tr>
+              <th class="ps-4" style="min-width:260px">Producto</th>
+              <th style="width:120px">Cantidad</th>
+              <th class="text-end">Precio</th>
+              <th class="text-end">Subtotal</th>
+              <th class="pe-4" style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bloque 3: Totales y Acciones Finales -->
+    <div class="pos-card p-3 p-md-4">
+      <div class="row align-items-center justify-content-between g-4">
+        <div class="col-md-6 order-2 order-md-1 d-flex flex-wrap gap-2">
+          <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold" type="submit">
+            <i class="bi bi-check2-circle me-1"></i> Registrar venta
+          </button>
+          <a class="btn btn-pos-client px-4 py-2" href="{{ url_for('erp.ventas') }}">Cancelar</a>
+        </div>
+
+        <div class="col-md-5 col-lg-4 order-1 order-md-2">
+          <div class="pos-summary-box p-3">
+            <div class="d-flex justify-content-between small mb-2" style="color: var(--pos-muted);">
+              <span>Subtotal</span>
+              <span class="fw-medium" style="color: var(--pos-ink);" id="t-subtotal">$0</span>
+            </div>
+            <div class="d-flex justify-content-between small pb-2 mb-2" style="color: var(--pos-muted); border-bottom: 1px solid var(--pos-border);">
+              <span>IVA ({{ (config.IVA * 100)|int }}%)</span>
+              <span class="fw-medium" style="color: var(--pos-ink);" id="t-iva">$0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-bold">Total a pagar</span>
+              <span class="h5 fw-bold text-primary mb-0" id="t-total">$0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Plantilla de fila dinámica para pos.js -->
+  <template id="fila-tpl">
+    <tr>
+      <td class="ps-4">
+        <select class="form-select item-producto" name="producto_id" required>
+          <option value="">Selecciona…</option>
+          {% for p in productos %}<option value="{{ p.id }}" data-precio="{{ p.precio }}" data-stock="{{ p.stock_actual }}">{{ p.nombre }} · {{ p.presentacion }} (stock {{ p.stock_actual }})</option>{% endfor %}
+        </select>
+      </td>
+      <td><input class="form-control item-cant" type="number" name="cantidad" value="1" min="1" required></td>
+      <td class="text-end item-precio fw-medium">$0</td>
+      <td class="text-end item-subtotal fw-semibold">$0</td>
+      <td class="pe-4 text-end">
+        <button type="button" class="btn btn-sm btn-outline-danger rounded-3 quitar-fila" title="Quitar fila">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
+</div>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/pos.js') }}"></script>{% endblock %}

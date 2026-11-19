@@ -1,13 +1,17 @@
 {% extends "layout.html" %}
 {% block title %}Dashboard General{% endblock %}
 {% block content %}
+{% set rol = current_user.rol if current_user.is_authenticated else None %}
+
+{% if rol in ('admin', 'vendedor') %}
 <!-- Contenido del dashboard general -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-movil.css') }}">
 
 <!-- Contenedor general adaptado: compacto en móvil (max-width: 480px) y fluido/más ancho en PC -->
 <div class="container py-3 mx-auto" style="max-width: 700px; width: 100%;">
 
-    <!-- 1. Barra de Búsqueda Superior (Ancho completo responsivo) -->
+    {% if rol == 'admin' %}
+    <!-- 1. Barra de Búsqueda Superior (Solo admin) -->
     <div class="position-relative mb-4 mt-2 mx-auto w-100">
         <div class="input-group shadow-sm buca" style="border-radius: 50px; background-color: #f8f9fa;">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted">
@@ -24,16 +28,18 @@
             style="z-index: 1050; max-height: 300px; overflow-y: auto;">
         </div>
     </div>
+    {% endif %}
 
-    <!-- 2. Módulos Principales (CRM, ERP, SCM) -->
-    <div class="row g-3 mb-4 mt-2 ">
+    <!-- 2. Módulos Principales (Admin: CRM, ERP y SCM | Vendedor: solo SCM) -->
+    <div class="row g-3 mb-4 mt-2">
 
+        {% if rol == 'admin' %}
         <!-- Tarjeta CRM -->
-        <div class="col-12 col-md-6 col-lg-6 ">
+        <div class="col-12 col-md-6 col-lg-6">
             <a href="{{ url_for('crm.clientes') }}"
-                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none mt-2 "
+                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none h-100"
                 style="background-color: #1A202C;">
-                <div class="card-body d-flex align-items-center py-3 ">
+                <div class="card-body d-flex align-items-center py-3">
                     <h3 class="fw-bold me-4 mb-0" style="min-width: 90px;">CRM</h3>
                     <div>
                         <div class="small text-light opacity-75">Gestión de relación con el cliente</div>
@@ -46,9 +52,9 @@
         <!-- Tarjeta ERP -->
         <div class="col-12 col-md-6 col-lg-6">
             <a href="{{ url_for('erp.ventas') }}"
-                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none mt-2 "
+                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none h-100"
                 style="background-color: #1A202C;">
-                <div class="card-body d-flex align-items-center py-3 ">
+                <div class="card-body d-flex align-items-center py-3">
                     <h3 class="fw-bold me-4 mb-0" style="min-width: 90px;">ERP</h3>
                     <div>
                         <div class="small text-light opacity-75">Planificación de recursos empresarial</div>
@@ -57,14 +63,15 @@
                 </div>
             </a>
         </div>
+        {% endif %}
 
-        <!-- Tarjeta SCM -->
-        <div class="col-12 ">
+        <!-- Tarjeta SCM (Admin y Vendedor) -->
+        <div class="col-12">
             <a href="{{ url_for('scm.inventario') }}"
-                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none "
+                class="card text-white border-0 shadow-sm rounded-4 text-decoration-none"
                 style="background-color: #1A202C;">
                 <div class="card-body d-flex align-items-center py-3">
-                    <h3 class="fw-bold me-4 mb-0 " style="min-width: 90px;">SCM</h3>
+                    <h3 class="fw-bold me-4 mb-0" style="min-width: 90px;">SCM</h3>
                     <div class="w-100 text-start text-md-start">
                         <div class="small text-light opacity-75">Gestión de la cadena de suministro</div>
                         <div class="fs-6 fw-semibold text-danger mt-1">Stock bajo: {{ bajos|length }} ítems</div>
@@ -75,7 +82,7 @@
 
     </div>
 
-    <!-- 3. Cuadrícula Inferior (Inventario y Vender) -->
+    <!-- 3. Cuadrícula Inferior (Inventario y Vender: Admin y Vendedor) -->
     <div class="row g-3 mb-4 mt-4">
 
         <!-- Botón / Tarjeta de Inventario -->
@@ -104,18 +111,32 @@
 
     </div>
 
-    <!-- 4. Sección de Datos y Tablas Rápidas -->
+    {% if rol == 'vendedor' %}
+    <!-- Botón de Recordatorios de Clientes (Solo vendedor) -->
+    <div class="mb-4">
+        <a href="{{ url_for('crm.recordatorios') }}"
+            class="btn btn-primary w-100 py-3 rounded-4 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-bell fs-5"></i>
+            <span>Ver recordatorio de clientes</span>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if rol == 'admin' %}
+    <!-- 4. Sección de Datos y Tablas Rápidas (Solo admin) -->
     <div class="card border-0 shadow-sm rounded-4 p-3 bg-white resumen">
         <h6 class="fw-bold mb-3"><i class="bi bi-clock-history text-secondary"></i> Resumen de operaciones</h6>
-       
+
         <div class="d-flex justify-content-between small text-muted texte32">
             <span>Órdenes de compra pendientes:</span>
             <span class="fw-bold text-dark span">{{ ordenes_pendientes }}</span>
         </div>
     </div>
+    {% endif %}
 
 </div>
 
+{% if rol == 'admin' %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("buscador-inventario");
@@ -172,4 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
+{% endif %}
+{% endif %}
 {% endblock %}

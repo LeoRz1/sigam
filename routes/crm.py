@@ -221,7 +221,20 @@ def vehiculo_cambio(vid):
 def recordatorios():
     lista = [v for v in Vehiculo.query.all() if v.estado_alerta in ("vencido", "proximo")]
     lista.sort(key=lambda v: v.proximo_cambio)
-    return render_template("crm_recordatorios.html", vehiculos=lista)
+
+    correos = []
+    vistos = set()
+    for v in lista:
+        correo = (v.cliente.email or "").strip() if v.cliente else ""
+        if correo and correo.lower() not in vistos:
+            vistos.add(correo.lower())
+            correos.append(correo)
+
+    return render_template(
+        "crm_recordatorios.html",
+        vehiculos=lista,
+        correos_recordatorios=correos,
+    )
 
 
 # ------------------------------------------------- Portal del cliente
