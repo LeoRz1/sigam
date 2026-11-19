@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from extensions import db
@@ -39,6 +39,39 @@ def _campos_vehiculo():
         {"name": "intervalo_dias", "label": "Recordar cada (días)", "type": "number",
          "help": "Por defecto 180 días."},
     ]
+
+
+# ---------------------------------------------------- Buscador rápido
+@bp.route("/inventario/buscar")
+@login_required
+def buscar_inventario():
+    """Devuelve sugerencias de productos en JSON para el autocompletado del dashboard."""
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify([])
+
+    productos = (
+        Producto.query
+        .filter(
+            Producto.activo.is_(True),
+            Producto.nombre.ilike(f"%{q}%") | Producto.presentacion.ilike(f"%{q}%")
+        )
+        .order_by(Producto.nombre.asc())
+        .limit(8)
+        .all()
+    )
+
+    resultados = [
+        {
+            "id": p.id,
+            "nombre": p.nombre,
+            "presentacion": p.presentacion or "",
+            "stock_actual": p.stock_actual,
+            "url": url_for("scm.inventario"),
+        }
+        for p in productos
+    ]
+    return jsonify(resultados)
 
 
 # --------------------------------------------------------------- Clientes

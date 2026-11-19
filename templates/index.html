@@ -8,10 +8,21 @@
 <div class="container py-3 mx-auto" style="max-width: 700px; width: 100%;">
 
     <!-- 1. Barra de Búsqueda Superior (Ancho completo responsivo) -->
-    <div class="input-group mb-4 shadow-sm buca mt-2 mx-auto w-100 "
-        style="border-radius: 50px; background-color: #f8f9fa;">
-        <input type="text" class="form-control rounded-pill py-2 px-3 bg-light text-muted border-0 buscar"
-            placeholder="Buscar en el inventario..." aria-label="Buscar en el inventario">
+    <div class="position-relative mb-4 mt-2 mx-auto w-100">
+        <div class="input-group shadow-sm buca" style="border-radius: 50px; background-color: #f8f9fa;">
+            <span class="input-group-text bg-transparent border-0 ps-3 text-muted">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" id="buscador-inventario" autocomplete="off"
+                class="form-control rounded-pill py-2 px-2 bg-light text-dark border-0 buscar"
+                placeholder="Buscar en el inventario..." aria-label="Buscar en el inventario">
+        </div>
+
+        <!-- Lista de sugerencias en tiempo real -->
+        <div id="sugerencias-inventario"
+            class="list-group position-absolute w-100 shadow-lg rounded-4 mt-1 d-none"
+            style="z-index: 1050; max-height: 300px; overflow-y: auto;">
+        </div>
     </div>
 
     <!-- 2. Módulos Principales (CRM, ERP, SCM) -->
@@ -32,7 +43,7 @@
             </a>
         </div>
 
-        <!-- Tarjeta ERP (Corregido el error de anidación) -->
+        <!-- Tarjeta ERP -->
         <div class="col-12 col-md-6 col-lg-6">
             <a href="{{ url_for('erp.ventas') }}"
                 class="card text-white border-0 shadow-sm rounded-4 text-decoration-none mt-2 "
@@ -96,10 +107,7 @@
     <!-- 4. Sección de Datos y Tablas Rápidas -->
     <div class="card border-0 shadow-sm rounded-4 p-3 bg-white resumen">
         <h6 class="fw-bold mb-3"><i class="bi bi-clock-history text-secondary"></i> Resumen de operaciones</h6>
-        <div class="d-flex justify-content-between small text-muted border-bottom pb-2 mb-2 texte32">
-            <span>Pedidos en línea pendientes:</span>
-            <span class="fw-bold text-dark span">{{ pedidos_pendientes }}</span>
-        </div>
+       
         <div class="d-flex justify-content-between small text-muted texte32">
             <span>Órdenes de compra pendientes:</span>
             <span class="fw-bold text-dark span">{{ ordenes_pendientes }}</span>
@@ -108,4 +116,60 @@
 
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("buscador-inventario");
+    const box = document.getElementById("sugerencias-inventario");
+    let timer = null;
+
+    const ocultarSugerencias = () => {
+        box.classList.add("d-none");
+        box.innerHTML = "";
+    };
+
+    input.addEventListener("input", () => {
+        const q = input.value.trim();
+        clearTimeout(timer);
+
+        if (q.length < 1) {
+            ocultarSugerencias();
+            return;
+        }
+
+        timer = setTimeout(async () => {
+            try {
+                const resp = await fetch(`{{ url_for('crm.buscar_inventario') }}?q=${encodeURIComponent(q)}`);
+                if (!resp.ok) return;
+                const items = await resp.json();
+
+                if (!items.length) {
+                    box.innerHTML = `<div class="list-group-item small text-muted py-2">Sin resultados para "${q}"</div>`;
+                    box.classList.remove("d-none");
+                    return;
+                }
+
+                box.innerHTML = items.map(item => `
+                    <a href="${item.url}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                        <div>
+                            <div class="fw-semibold small">${item.nombre}</div>
+                            <div class="text-muted" style="font-size: 0.78rem;">${item.presentacion || ""}</div>
+                        </div>
+                        <span class="badge text-bg-secondary rounded-pill">${item.stock_actual} uds</span>
+                    </a>
+                `).join("");
+
+                box.classList.remove("d-none");
+            } catch (err) {
+                console.error("Error buscando en inventario:", err);
+            }
+        }, 200);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest("#buscador-inventario") && !e.target.closest("#sugerencias-inventario")) {
+            ocultarSugerencias();
+        }
+    });
+});
+</script>
 {% endblock %}
