@@ -4,7 +4,7 @@
 }
 [data-bs-theme="dark"] {
     --bs-body-color: #f8f9fa; /* Color de texto oscuro */
-    --bs-body-bg: #1c254e; /* Color de fondo claro */
+    --bs-body-bg: #000000; /* Color de fondo claro */
     
 }
 boddy {
